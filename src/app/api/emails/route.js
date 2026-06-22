@@ -24,6 +24,7 @@ export async function GET(req) {
           snippet,
           status,
           created_at,
+          sender_email,
           sender:profiles!messages_sender_id_fkey (
             id,
             email,

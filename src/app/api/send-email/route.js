@@ -42,6 +42,7 @@ export async function POST(req) {
       .insert({
         thread_id: thread.id,
         sender_id: senderId,
+        sender_email: senderProfile.email,
         body_html: html || "",
         snippet: snippet,
         status: "sending"

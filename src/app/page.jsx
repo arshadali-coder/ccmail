@@ -109,8 +109,8 @@ export default function App() {
             return {
               id: entry.id, // mailbox entry ID
               messageId: msg.id,
-              sender: senderProfile.full_name || senderProfile.email || "System",
-              senderEmail: senderProfile.email || "system@ccmail.dev",
+              sender: senderProfile.full_name || senderProfile.email || msg.sender_email || "System",
+              senderEmail: senderProfile.email || msg.sender_email || "system@ccmail.dev",
               subject: msg.thread?.subject || "(No Subject)",
               snippet: entry.folder === "draft" && !msg.snippet ? "(Draft)" : (msg.snippet || ""),
               body: msg.body_html || "",
@@ -361,8 +361,8 @@ export default function App() {
             return {
               id: entry.id,
               messageId: msg.id,
-              sender: senderProfile.full_name || senderProfile.email || "System",
-              senderEmail: senderProfile.email || "system@ccmail.dev",
+              sender: senderProfile.full_name || senderProfile.email || msg.sender_email || "System",
+              senderEmail: senderProfile.email || msg.sender_email || "system@ccmail.dev",
               subject: msg.thread?.subject || "(No Subject)",
               snippet: entry.folder === "draft" && !msg.snippet ? "(Draft)" : (msg.snippet || ""),
               body: msg.body_html || "",
@@ -401,8 +401,8 @@ export default function App() {
           return {
             id: entry.id,
             messageId: msg.id,
-            sender: senderProfile.full_name || senderProfile.email || "System",
-            senderEmail: senderProfile.email || "system@ccmail.dev",
+            sender: senderProfile.full_name || senderProfile.email || msg.sender_email || "System",
+            senderEmail: senderProfile.email || msg.sender_email || "system@ccmail.dev",
             subject: msg.thread?.subject || "(No Subject)",
             snippet: entry.folder === "draft" && !msg.snippet ? "(Draft)" : (msg.snippet || ""),
             body: msg.body_html || "",
