@@ -1,5 +1,11 @@
 import { supabase } from "@/lib/supabase-admin";
 
+function extractEmail(address) {
+  if (!address) return "";
+  const match = address.match(/<([^>]+)>/);
+  return match ? match[1].trim().toLowerCase() : address.trim().toLowerCase();
+}
+
 export async function POST(req) {
   try {
     // 1. Verify a secret token from the request header: Authorization: Bearer <WORKER_SECRET>
@@ -18,11 +24,18 @@ export async function POST(req) {
       return Response.json({ error: "Missing required fields: to and from" }, { status: 400 });
     }
 
-    // 3. Find the recipient user by matching profiles.email = payload.to
+    const recipientEmail = extractEmail(to);
+    const senderEmail = extractEmail(from);
+
+    if (!recipientEmail || !senderEmail) {
+      return Response.json({ error: "Invalid email format for to or from" }, { status: 400 });
+    }
+
+    // 3. Find the recipient user by matching profiles.email = recipientEmail
     const { data: recipientProfile, error: profileError } = await supabase
       .from("profiles")
       .select("id")
-      .eq("email", to.trim().toLowerCase())
+      .eq("email", recipientEmail)
       .maybeSingle();
 
     if (profileError) {
@@ -56,7 +69,7 @@ export async function POST(req) {
       .insert({
         thread_id: thread.id,
         sender_id: null,
-        sender_email: from.trim().toLowerCase(),
+        sender_email: senderEmail,
         body_html: body_html || "",
         snippet: snippet,
         status: "sent"
@@ -71,7 +84,7 @@ export async function POST(req) {
       .from("message_recipients")
       .insert({
         message_id: message.id,
-        recipient_email: to.trim().toLowerCase(),
+        recipient_email: recipientEmail,
         recipient_user_id: recipientProfile.id,
         recipient_type: "to"
       });
