@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase-admin";
+import PostalMime from "postal-mime";
 
 function extractEmail(address) {
   if (!address) return "";
@@ -18,7 +19,22 @@ export async function POST(req) {
 
     // 2. Parse payload
     const payload = await req.json();
-    const { to, from, subject, body_html, body_text, text } = payload;
+    const { to, from, subject } = payload;
+    let body_html = payload.body_html || "";
+    let body_text = payload.body_text || payload.text || "";
+
+    // If payload contains raw_email or body_html is actually a raw MIME email
+    const rawEmail = payload.raw_email || (body_html && (body_html.startsWith("Received:") || body_html.includes("MIME-Version:")));
+    if (rawEmail) {
+      try {
+        const parser = new PostalMime();
+        const parsed = await parser.parse(rawEmail);
+        body_html = parsed.html || parsed.text || "";
+        body_text = parsed.text || "";
+      } catch (err) {
+        console.error("Failed to parse raw email with postal-mime:", err);
+      }
+    }
 
     if (!to || !from) {
       return Response.json({ error: "Missing required fields: to and from" }, { status: 400 });
@@ -61,7 +77,7 @@ export async function POST(req) {
 
     // 5. Create a message record:
     // snippet = first 150 characters of plain text body
-    const plainText = body_text || text || (body_html ? body_html.replace(/<[^>]*>/g, '') : "");
+    const plainText = body_text || (body_html ? body_html.replace(/<[^>]*>/g, '') : "");
     const snippet = plainText.trim().slice(0, 150);
 
     const { data: message, error: messageError } = await supabase

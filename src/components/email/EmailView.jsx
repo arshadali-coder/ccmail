@@ -70,8 +70,18 @@ export default function EmailView({
       </div>
 
       {/* Email Body Block */}
-      <div className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap font-sans max-w-3xl bg-gray-50/40 p-5 rounded-2xl border border-gray-100">
-        {viewingEmail.body}
+      <div className="text-gray-800 text-sm leading-relaxed font-sans max-w-3xl bg-gray-50/40 p-5 rounded-2xl border border-gray-100 overflow-auto min-h-[120px] flex flex-col justify-center">
+        {viewingEmail.body ? (
+          <div
+            className={/<[a-z][\s\S]*>/i.test(viewingEmail.body) ? '' : 'whitespace-pre-wrap'}
+            dangerouslySetInnerHTML={{ __html: viewingEmail.body }}
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center text-gray-400 py-6 gap-2">
+            <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-xs">Loading email content...</span>
+          </div>
+        )}
       </div>
 
       {/* Quick actions row */}

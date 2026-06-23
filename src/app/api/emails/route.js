@@ -1,13 +1,47 @@
 import { supabase } from "@/lib/supabase-admin";
 
-// GET /api/emails?userId=...
+// GET /api/emails?userId=... or GET /api/emails?messageId=...
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
+    const messageId = searchParams.get("messageId");
+
+    if (messageId) {
+      // Fetch details of a single message (including body_html)
+      const { data, error } = await supabase
+        .from("messages")
+        .select(`
+          id,
+          body_html,
+          snippet,
+          status,
+          created_at,
+          sender_email,
+          sender:profiles!messages_sender_id_fkey (
+            id,
+            email,
+            full_name,
+            avatar_url
+          ),
+          thread:threads (
+            id,
+            subject
+          ),
+          recipients:message_recipients (
+            recipient_email,
+            recipient_type
+          )
+        `)
+        .eq("id", messageId)
+        .single();
+
+      if (error) throw error;
+      return Response.json(data);
+    }
 
     if (!userId) {
-      return Response.json({ error: "userId is required" }, { status: 400 });
+      return Response.json({ error: "userId or messageId is required" }, { status: 400 });
     }
 
     const { data, error } = await supabase
@@ -20,7 +54,6 @@ export async function GET(req) {
         created_at,
         message:messages (
           id,
-          body_html,
           snippet,
           status,
           created_at,

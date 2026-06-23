@@ -229,7 +229,26 @@ export default function App() {
   };
 
   const handleOpenEmail = async (email) => {
+    // Show email view immediately (body will load in background if not already present)
     setViewingEmail(email);
+
+    if (!email.body) {
+      try {
+        const res = await fetch(`/api/emails?messageId=${email.messageId}`);
+        if (res.ok) {
+          const detail = await res.json();
+          const cleanBody = detail.body_html || "";
+          
+          // Update cached email in list
+          setEmails(prev => prev.map(e => e.id === email.id ? { ...e, body: cleanBody } : e));
+          // Update currently viewed email
+          setViewingEmail(prev => prev && prev.id === email.id ? { ...prev, body: cleanBody } : prev);
+        }
+      } catch (err) {
+        console.error("Failed to fetch email body:", err);
+      }
+    }
+
     // Mark as read in DB if it was unread
     if (email.unread) {
       // Optimistically mark as read
